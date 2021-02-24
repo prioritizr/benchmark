@@ -10,7 +10,6 @@ output:
 
 [![lifecycle](https://img.shields.io/badge/Lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 
-
 **This project is still being developed. It does not work yet. Stay tuned!**
 
 ```{r, eval = !file.exists("data/final/results.rda"), include = FALSE}
@@ -31,7 +30,7 @@ This repository contains code for benchmarking the performance of exact algorith
 
 ## Repository structure
 
-After downloading (cloning) this repository, you can rerun the analysis on your own computer using the system command `make clean all`. This repository is organized as follows:
+After downloading (cloning) this repository, you can rerun the analysis on your own computer using the system command `make clean all`. **Please ensure that the `MODE` variable in the _Makefile_ is set to `release` to obtain correct results.** This repository is organized as follows:
 * _data_
   + _raw_: raw data used to run the analysis (see [Data storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.1) for large files).
   + _intermediate_: intermediate data generated during analysis.
@@ -46,6 +45,28 @@ After downloading (cloning) this repository, you can rerun the analysis on your 
   + _R package management](https://rstudio.github.io/packrat/).
 
 The files in the _results_ are created after completing benchmark analysis. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.2).
+
+### Software required
+
+* Software
+  + _GNU make_ (version 4.1+)
+  + _GDAL_ (version 2.2+)
+  + [_Gurobi_ (academic licenses are available for no cost)](http://www.gurobi.com/)
+  + [_IBM CPLEX_ (academic licenses are available for no cost)](https://www.ibm.com/analytics/cplex-optimizer)
+  + [R (version 4.0.3+)](https://www.r-project.org)
+* System packages:
+  + gdal-bin
+  + libjq-dev
+  + libprotobuf-dev
+  + protobuf-compiler
+  + libudunits2-dev
+  + libgdal-dev
+  + libgeos-dev
+  + libproj-dev
+  + libv8-dev
+  + libxml2-dev
+  + libssl-dev
+  + libgit2-dev
 
 ## References
 
