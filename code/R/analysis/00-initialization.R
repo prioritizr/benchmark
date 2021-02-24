@@ -23,9 +23,7 @@ general_parameters <- general_parameters[[MODE]]
 source("code/R/functions/misc.R")
 
 # load spatial data manipulation functions
-source("code/R/functions/raster_io.R")
 source("code/R/functions/gdal_functions.R")
-source("code/R/functions/spatial_functions.R")
 
 # store gurobi version
 gurobi_version <- as.character(packageVersion("gurobi"))

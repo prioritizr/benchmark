@@ -1,13 +1,23 @@
 title = "benchmarking parameters"
 
 [debug]
+## parameters
+solver = ["add_gurobi_solver", "add_cbc_solver"]
+boundary_penalty_value = [0.0, 0.001]
+relative_target = [0.1, 0.15, 0.2]
+number_replicates = 2
+## solver arguments
 time_limit = 20 # seconds
 threads = 1
-number_replicates = 1
-solvers = ["add_gurobi_solver", "add_cbc_solver"]
+gap = [0.1]
 
 [main]
+## parameters
+number_replicates = 5
+relative_target = [0.01, 0.05, 0.1, 0.15, 0.2, 0.3]
+boundary_penalty_value = [0.0, 0.001]
+solver = ["add_gurobi_solver", "add_rsymphony_solver", "add_cplex_solver", "add_cbc_solver", "add_lpsymphony_solver"]
+## solver arguments
 time_limit = 1e+3 # seconds
 threads = 1
-number_replicates = 5
-solvers = ["add_gurobi_solver", "add_rsymphony_solver", "add_cplex_solver", "add_cbc_solver"]
+gap = [0.01]

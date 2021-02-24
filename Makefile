@@ -1,12 +1,14 @@
 ## variables
-# MODE=release# set parameters for inference
 MODE=debug# set parameters for debugging code
+# MODE=release# set parameters for inference
 
 ## main operations
-R:
+open:
 	R --quiet --no-save
 
-all: install raw_data analysis push_results
+all: install raw_data analysis
+
+all_and_export: all export
 
 clean:
 	@rm -rf data/intermediate/*
@@ -41,7 +43,7 @@ data/intermediate/01-*.rda: data/intermediate/00-*.rda code/R/analysis/01-*.R
 	R CMD BATCH --no-restore --no-save code/R/analysis/01-*.R
 	mv -f *.Rout data/intermediate/
 
-data/intermediate/00-*.rda: code/R/analysis/00-*.R code/parameters/general.toml code/R/functions/misc.R code/R/functions/session_path.R
+data/intermediate/00-*.rda: code/R/analysis/00-*.R code/parameters/general.toml code/R/functions/misc.R code/R/functions/session_path.R code/R/functions/gdal_functions.R
 	R CMD BATCH --no-restore --no-save '--args MODE=$(MODE)' code/R/analysis/00-*.R
 	mv -f *.Rout data/intermediate/
 
@@ -57,10 +59,19 @@ packrat_update_local_packages:
 packrat_snapshot:
 	R -e "packrat::snapshot(infer = FALSE)"
 
+# command to make readme
+readme:
+	R --slave -e "rmarkdown::render('README.Rmd')"
+
 # command to download data
 raw_data: data/raw/planning-units/nplcc_cost_occupancy.zip
 
 data/raw/planning-units/nplcc_cost_occupancy.zip:
 	R -e "piggyback::pb_download('nplcc_cost_occupancy.zip',repo='prioritizr/benchmark',dest='data/raw/planning-units',tag='v0.0.1')"
 
-.PHONY: install raw_data analysis push_results
+# command to export data so it can be accessed by prioritizr vignette
+export: results/results.rda results/solutions.zip
+	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.2')"
+	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.2')"
+
+.PHONY: install raw_data analysis export

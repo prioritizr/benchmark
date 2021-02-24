@@ -1,0 +1,7 @@
+title = "data import parameters"
+
+[debug]
+n_max_pu = 1.0e+5
+
+[release]
+n_max_pu = "Inf"
