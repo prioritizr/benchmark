@@ -1,0 +1,9 @@
+title = "data parameters"
+
+[debug]
+relative_targets = [0.1, 0.15, 0.2]
+planning_unit_size = [] # units are km^2
+
+[release]
+relative_targets = [0.01, 0.05, 0.1, 0.15, 0.2, 0.3]
+planning_unit_size = [] # units are km^2
