@@ -21,6 +21,9 @@ data/final/results.rda
 # temp files
 *.crdownload*
 
+# large data files
+data/raw/planning-units/*zip
+
 # packrat library files
 packrat/lib
 packrat/lib-R
