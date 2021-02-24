@@ -1,0 +1,30 @@
+# C++ compiled files
+*.o
+*.so
+*.dll
+
+# R profile files
+*.Rproj.user
+*.Rhistory
+
+# log files
+gurobi.log
+*.Rout
+
+# system files
+.directory
+
+# cache
+data/intermediate/*
+data/final/results.rda
+
+# temp files
+*.crdownload*
+
+# packrat library files
+packrat/lib
+packrat/lib-R
+
+# do not ignore the following files
+!*.gitkeep
+packrat/lib*/
