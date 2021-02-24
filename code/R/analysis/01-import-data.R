@@ -1,16 +1,16 @@
 # restore session
-session::restore.session(session_path("01"))
+session::restore.session(session_path("00"))
 
 # species metadata
 spp_data <-
-  "data/raw/species/nlpcc_species.csv"
+  "data/raw/species/nlpcc_species.csv" %>%
   readr::read_csv(
     col_types = readr::cols(
       .default = readr::col_double(), pu = readr::col_integer()))
 
 # planning unit data
 pu_data <-
-  "data/raw/planning-units/nplcc_cost_occupancy.zip"
+  "data/raw/planning-units/nplcc_cost_occupancy.zip" %>%
   readr::read_csv(
     col_types = readr::cols(
       .default = readr::col_double(), pu = readr::col_integer()))
@@ -31,8 +31,8 @@ raster::writeRaster(
   pu_raster_data, pu_raster_data_path,
   overwrite = TRUE, NAflag = -9999)
 
+# clean up
+rm(pu_raster_data, pu_data)
 
 # save session
-session::save.session(session_path("00"), compress = "xz")
-
-p
+session::save.session(session_path("01"), compress = "xz")
