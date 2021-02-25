@@ -20,31 +20,43 @@ After downloading (cloning) this repository, you can rerun the analysis on your 
 Repository structure
 --------------------
 
-This repository is organized as follows: \* *data* + *raw*: raw data used to run the analysis (see [Data storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.1) for large files). + *intermediate*: intermediate data generated during analysis. + *final*: final data created after completing the analysis. \* *code* + *parameters*: settings for running the analyses in [TOML format](https://github.com/toml-lang/toml). + [*R*](www.r-project.org): code used to run the analysis. \* *results* + `results.rda`: Rdata file containing the results. + `solutions.tif` GeoTIFF files containing solutions form benchmark runs. \* *packrat* + [*R* package management](https://rstudio.github.io/packrat/).
+This repository is organized as follows:
+
+-   *data*:
+    -   *raw*: Raw data used to run the analysis (see [Data storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.1) for large files).
+    -   *intermediate*: Intermediate data generated during analysis.
+    -   *final*: Final data created after completing the analysis.
+-   *code*:
+    -   *parameters*: Settings for running the analysis ([TOML format](https://github.com/toml-lang/toml)).
+    -   [*R*](www.r-project.org): Code used to run the analysis.
+-   *results*:
+    -   `results.rda`: Rdata file containing the results. This file is created after running the analysis locally.
+    -   `solutions.tif` GeoTIFF files containing solutions form benchmark runs. This file is created after running the analysis locally.
+-   *packrat*: [*R* package management](https://rstudio.github.io/packrat/).
 
 The files in the *results* directory are created after completing benchmark analysis. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.2).
 
 ### Software required
 
 -   Software
--   *GNU make* (version 4.1+)
--   *GDAL* (version 2.2+)
--   [*Gurobi* (academic licenses are available for no cost)](http://www.gurobi.com/)
--   [*IBM CPLEX* (academic licenses are available for no cost)](https://www.ibm.com/analytics/cplex-optimizer)
--   [R (version 4.0.3+)](https://www.r-project.org)
+    -   *GNU make* (version 4.1+)
+    -   *GDAL* (version 2.2+)
+    -   [*Gurobi* (academic licenses are available for no cost)](http://www.gurobi.com/)
+    -   [*IBM CPLEX* (academic licenses are available for no cost)](https://www.ibm.com/analytics/cplex-optimizer)
+    -   [R (version 4.0.3+)](https://www.r-project.org)
 -   System packages:
--   gdal-bin
--   libjq-dev
--   libprotobuf-dev
--   protobuf-compiler
--   libudunits2-dev
--   libgdal-dev
--   libgeos-dev
--   libproj-dev
--   libv8-dev
--   libxml2-dev
--   libssl-dev
--   libgit2-dev
+    -   gdal-bin
+    -   libjq-dev
+    -   libprotobuf-dev
+    -   protobuf-compiler
+    -   libudunits2-dev
+    -   libgdal-dev
+    -   libgeos-dev
+    -   libproj-dev
+    -   libv8-dev
+    -   libxml2-dev
+    -   libssl-dev
+    -   libgit2-dev
 
 References
 ----------
