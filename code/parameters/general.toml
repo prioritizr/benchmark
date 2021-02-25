@@ -4,4 +4,4 @@ title = "general parameters"
 threads = 2
 
 [main]
-threads = 20
+threads = 1
