@@ -26,25 +26,25 @@ source("code/R/functions/helpers.R")
 
 ## Summary
 
-This repository contains code for benchmarking the performance of exact algorithm solvers for conservation planning problems (see [Mittelmann 2021](http://plato.asu.edu/bench.html) for general purpose benchmarks). Specifically, these benchmarks examine the performance of the [_Gurobi_](https://www.gurobi.com/) and [_IBM CPLEX_](https://www.ibm.com/analytics/cplex-optimizer) commercial solvers. They also examine the [_CBC_ (OIN-OR branch and cut)](https://projects.coin-or.org/Cbc) and [_SYMPHONY_](https://prioritizr.net/reference/add_rsymphony_solver.html) (via the _Rsymphony_ and _lpsymphony R_ packages) open source solvers. The benchmarks are performed using a realistic conservation planning dataset, involving `r nrow(spp_data)` species and costs derived from land valuation data (see [Schuster *et al.* 2020](https://doi.org/10.7717/peerj.9258)). To investigate how well different solvers scale with different sized datasets, these benchmarks also examine different versions of the dataset wherein planning units are resampled to different resolutions. The [results of benchmark analysis](https://prioritizr.net/) are reported in the [Benchmark vignette](https://prioritizr.net/articles/benchmark.html) of the [_prioritizr R_ package](https://prioritizr.net/).
+This repository contains code for benchmarking the performance of exact algorithm solvers for conservation planning problems (see [Mittelmann 2021](http://plato.asu.edu/bench.html) for general purpose benchmarks). Specifically, these benchmarks examine the performance of the [_Gurobi_](https://www.gurobi.com/) and [_IBM CPLEX_](https://www.ibm.com/analytics/cplex-optimizer) commercial solvers. They also examine the [_CBC_ (OIN-OR branch and cut)](https://projects.coin-or.org/Cbc) and [_SYMPHONY_](https://prioritizr.net/reference/add_rsymphony_solver.html) (via the _Rsymphony_ and _lpsymphony R_ packages) open source solvers. The benchmarks are performed using a realistic conservation planning dataset, involving `r nrow(spp_data)` species and costs derived from land valuation data (see [Schuster *et al.* 2020](https://doi.org/10.7717/peerj.9258)). To investigate how well different solvers scale with different sized datasets, these benchmarks examine different versions of the dataset wherein planning units are resampled to different resolutions. The [results of benchmark analysis](https://prioritizr.net/) are reported in the [Benchmark vignette](https://prioritizr.net/articles/benchmark.html) of the [_prioritizr R_ package](https://prioritizr.net/).
 
 ## Repository structure
 
 After downloading (cloning) this repository, you can rerun the analysis on your own computer using the system command `make clean all`. **Please ensure that the `MODE` variable in the _Makefile_ is set to `release` to obtain correct results.** This repository is organized as follows:
 * _data_
-  + _raw_: raw data used to run the analysis (see [Data storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.1) for large files).
-  + _intermediate_: intermediate data generated during analysis.
+    + _raw_: raw data used to run the analysis (see [Data storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.1) for large files).
+    + _intermediate_: intermediate data generated during analysis.
   + _final_: final data created after completing the analysis.
 * _code_
-  + _parameters_: settings for running the analyses in [TOML format](https://github.com/toml-lang/toml).
-  + [_R_](www.r-project.org): code used to run the analysis.
+    + _parameters_: settings for running the analyses in [TOML format](https://github.com/toml-lang/toml).
+    + [_R_](www.r-project.org): code used to run the analysis.
 * _results_
-  + `results.rda`: Rdata file containing the results.
-  + `solutions.tif` GeoTIFF files containing solutions form benchmark runs.
+    + `results.rda`: Rdata file containing the results.
+    + `solutions.tif` GeoTIFF files containing solutions form benchmark runs.
 * _packrat_
-  + _R package management](https://rstudio.github.io/packrat/).
+    + [_R_ package management](https://rstudio.github.io/packrat/).
 
-The files in the _results_ are created after completing benchmark analysis. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.2).
+The files in the _results_ directory are created after completing benchmark analysis. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.2).
 
 ### Software required
 
@@ -72,4 +72,4 @@ The files in the _results_ are created after completing benchmark analysis. If y
 
 [Schuster R, Hanson JO, Strimas-Mackey M and Bennett JR (2020) Exact integer linear programming solvers outperform simulated annealing for solving conservation planning problems. _PeerJ_, **8**: e9258.](https://doi.org/10.7717/peerj.9258)
 
-Mittelmann H (2021) Benchmarks for optimization software. <http://plato.asu.edu/bench.html> [accessed 25 Febrary 2021].
+Mittelmann H (2021) Benchmarks for optimization software. <http://plato.asu.edu/bench.html> [accessed February 2021].
