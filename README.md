@@ -30,11 +30,11 @@ This repository is organized as follows:
     -   *parameters*: Settings for running the analysis ([TOML format](https://github.com/toml-lang/toml)).
     -   [*R*](www.r-project.org): Code used to run the analysis.
 -   *results*:
-    -   `results.rda`: Rdata file containing the results. This file is created after running the analysis locally.
-    -   `solutions.tif` GeoTIFF files containing solutions form benchmark runs. This file is created after running the analysis locally.
+    -   `results.rda`: Rdata file containing the results.
+    -   `solutions.tif` GeoTIFF files containing solutions form benchmark runs.
 -   *packrat*: [*R* package management](https://rstudio.github.io/packrat/).
 
-The files in the *results* directory are created after completing benchmark analysis. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.2).
+Note that the files in the *results* directory are created after completing benchmark analysis. They are not present in the online repository. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases/tag/v0.0.2).
 
 ### Software required
 
