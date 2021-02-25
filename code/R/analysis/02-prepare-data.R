@@ -114,7 +114,7 @@ invisible(lapply(seq_along(bd_data_paths), function(i) {
 }))
 
 # clean up
-rm(full_pu_data, full_pu_data_raster_data,
+rm(full_pu_data, full_pu_raster_data,
    idx, pu_data, pu_raster_data, pu_output)
 
 # save session

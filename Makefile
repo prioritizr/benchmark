@@ -13,9 +13,10 @@ all_and_export: all export
 clean:
 	@rm -rf data/intermediate/*
 	@rm -rf data/final/*
+	@rm -rf results/*
 	@touch data/intermediate/.gitkeep
 	@touch data/final/.gitkeep
-	@touch article/.gitkeep
+	@touch results/.gitkeep
 
 # commands for updating time-stamps
 touch:

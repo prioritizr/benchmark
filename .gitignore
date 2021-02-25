@@ -24,6 +24,10 @@ data/final/results.rda
 # large data files
 data/raw/planning-units/*zip
 
+# result files
+results/results.rda
+results/solutions.zip
+
 # packrat library files
 packrat/lib
 packrat/lib-R

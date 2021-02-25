@@ -9,6 +9,7 @@ benchmark_parameters <-
 dir.create("data/intermediate/solutions", showWarnings = FALSE)
 
 # initialize benchmark results with metadata for each run
+## create data
 benchmark_results <-
   expand.grid(
     pu_data  = seq_along(pu_data_paths),
@@ -25,6 +26,9 @@ benchmark_results <-
   mutate(id = seq_len(nrow(.))) %>%
   mutate(number_of_planning_units = pu_data_n[pu_data]) %>%
   select(id, pu_data, number_of_planning_units, everything())
+
+## print number of rows for logging
+message("total number of benchmark runs: ", nrow(benchmark_results))
 
 # prepare cluster for parallel processing
 if (general_parameters$threads > 1) {
@@ -56,13 +60,14 @@ if (general_parameters$threads > 1) {
 benchmark_results <-
   benchmark_results %>%
   dplyr::sample_frac() %>% # randomize benchmark order
-  plyr::dlply(
-    "id",
-    .parallel = exists("cl"),
+  dplyr::mutate(id2 = seq_len(nrow(.))) %>%
+  plyr::ddply(
+    "id2",
+    .parallel = FALSE, #exists("cl"),
     .progress = ifelse(exists("cl"), "none", "text"),
     function(x) {
     ## print current run
-    message("starting run: ", id)
+    message("starting run: ", x$id)
     ## validate arguments
     assertthat::assert_that(nrow(x) == 1)
     ## import planning unit data
@@ -120,28 +125,24 @@ benchmark_results <-
     }
     ## save solution raster
     n <- paste0("data/intermediate/solutions/", x$id, ".tif")
-    raster::writeRaster(r, n, overwrite = TRUE, NAflag = TRUE)
+    raster::writeRaster(r, n, overwrite = TRUE, NAflag = -9999)
     ## prepare outputs
     tibble::tibble(
       id = x$id,
       objective_value = attr(s, "objective")[[1]],
       status = attr(s, "status")[[1]],
       run_time = as.numeric(attr(s, "runtime")[[1]]),
-      solution = n)
+      exceeded_run_time = (run_time > x$time_limit) + 1,
+      solution = basename(n))
   }) %>%
-  {left_join(x = benchmark_results, by = "id")}
+  left_join(x = benchmark_results, by = "id")
 
 # clean up parallel processing workers
 if (general_parameters$threads > 1) {
   cl <- parallel::stopCluster(cl)
-  registerDoParallel::stopImplicitCluster(cl)
+  doParallel::stopImplicitCluster()
   rm(cl)
 }
-
-# post-processing of benchmark results
-benchmark_results <-
-  benchmark_results
-  select(id, pu_data, number_of_planning_units, everything())
 
 # save session
 session::save.session(session_path("03"), compress = "xz")
