@@ -58,7 +58,7 @@ Note that the files in the _results_ directory are created after completing benc
     + [_Gurobi_ (academic licenses are available for no cost)](http://www.gurobi.com/)
     + [_IBM CPLEX_ (academic licenses are available for no cost)](https://www.ibm.com/analytics/cplex-optimizer)
     + [R (version 4.0.3+)](https://www.r-project.org)
-* System packages:
+* System packages (Ubuntu operating system):
     + gdal-bin
     + libjq-dev
     + libprotobuf-dev
@@ -71,6 +71,9 @@ Note that the files in the _results_ directory are created after completing benc
     + libxml2-dev
     + libssl-dev
     + libgit2-dev
+    + coinor-libcbc-dev
+    + coinor-libclp-dev
+    + coinor-libsymphony-dev
 
 ## References
 
