@@ -1,6 +1,11 @@
 # restore session
 session::restore.session(session_path("00"))
 
+# set raster processing options
+raster::rasterOptions(
+  maxmemory = general_parameters$raster_maxmemory,
+  chunksize = general_parameters$raster_chunksize)
+
 # import parameters
 import_parameters <-
   RcppTOML::parseTOML("code/parameters/import.toml")[[MODE]]

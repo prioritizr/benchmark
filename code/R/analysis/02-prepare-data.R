@@ -1,6 +1,11 @@
 # restore session
 session::restore.session(session_path("01"))
 
+# set raster processing options
+raster::rasterOptions(
+  maxmemory = general_parameters$raster_maxmemory,
+  chunksize = general_parameters$raster_chunksize)
+
 # import parameters
 data_parameters <-
   RcppTOML::parseTOML("code/parameters/data.toml")[[MODE]]
@@ -33,7 +38,7 @@ full_pu_raster_data[raster::Which(is.na(full_pu_raster_data))] <- -1
 ## in raster format and also data.frame format
 pu_output <-
   pu_size_factors %>%
-  plyr::llply(function(x) {
+  plyr::llply(.progress = "text", function(x) {
     ## create aggregated dataset
     r <- gdal_aggregate_raster(full_pu_raster_data, fact = x, "max")
     ## assign new planning unit ids
