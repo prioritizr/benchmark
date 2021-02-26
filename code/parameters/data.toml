@@ -4,4 +4,4 @@ title = "data parameters"
 planning_unit_size = [500, 1000] # units are meters x meters
 
 [release]
-planning_unit_size = [100, 500, 1000, 5000, 10000] # units are meters x meters
+planning_unit_size = [100, 154,  488, 1542, 4875] # units are meters x meters

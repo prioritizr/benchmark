@@ -29,4 +29,4 @@ source("code/R/functions/gdal_functions.R")
 gurobi_version <- as.character(packageVersion("gurobi"))
 
 # save session
-session::save.session(session_path("00"), compress = "xz")
+session::save.session(session_path("00"), compress = FALSE)

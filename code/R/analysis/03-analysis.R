@@ -145,4 +145,4 @@ if (general_parameters$threads > 1) {
 }
 
 # save session
-session::save.session(session_path("03"), compress = "xz")
+session::save.session(session_path("03"), compress = FALSE)

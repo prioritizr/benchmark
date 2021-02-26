@@ -94,7 +94,7 @@ bd_data <-
 pu_data_paths <-
   paste0("data/intermediate/pu-", seq_along(pu_size_factors), ".rds")
 invisible(lapply(seq_along(pu_data_paths), function(i) {
-  saveRDS(pu_data[[i]], pu_data_paths[[i]], compress = "xz")
+  saveRDS(pu_data[[i]], pu_data_paths[[i]], compress = FALSE)
 }))
 
 ## planning unit raster data
@@ -110,7 +110,7 @@ invisible(lapply(seq_along(pu_size_factors), function(i) {
 bd_data_paths <-
   paste0("data/intermediate/bd-", seq_along(bd_data), ".rds")
 invisible(lapply(seq_along(bd_data_paths), function(i) {
-  saveRDS(bd_data[[i]], bd_data_paths[[i]], compress = "xz")
+  saveRDS(bd_data[[i]], bd_data_paths[[i]], compress = FALSE)
 }))
 
 # clean up
@@ -118,4 +118,4 @@ rm(full_pu_data, full_pu_raster_data,
    idx, pu_data, pu_raster_data, pu_output)
 
 # save session
-session::save.session(session_path("02"), compress = "xz")
+session::save.session(session_path("02"), compress = FALSE)

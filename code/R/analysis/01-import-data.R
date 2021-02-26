@@ -91,7 +91,7 @@ assertthat::assert_that(
 # save results
 ## planning unit data
 full_pu_data_path <- "data/intermediate/full-pu.rds"
-saveRDS(full_pu_data, full_pu_data_path, compress = "xz")
+saveRDS(full_pu_data, full_pu_data_path, compress = FALSE)
 
 ## planning unit raster data
 full_pu_raster_data_path <- "data/intermediate/full-pu.tif"
@@ -103,4 +103,4 @@ raster::writeRaster(
 rm(full_pu_raster_data, full_pu_data)
 
 # save session
-session::save.session(session_path("01"), compress = "xz")
+session::save.session(session_path("01"), compress = FALSE)
