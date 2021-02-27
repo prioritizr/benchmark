@@ -63,7 +63,7 @@ benchmark_results <-
   dplyr::mutate(id2 = seq_len(nrow(.))) %>%
   plyr::ddply(
     "id2",
-    .parallel = FALSE, #exists("cl"),
+    .parallel = TRUE, #exists("cl"),
     .progress = ifelse(exists("cl"), "none", "text"),
     function(x) {
     ## print current run
