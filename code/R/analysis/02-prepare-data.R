@@ -37,8 +37,13 @@ full_pu_raster_data[raster::Which(is.na(full_pu_raster_data))] <- -1
 ## each list contains a list of containing the planning unit data
 ## in raster format and also data.frame format
 pu_output <-
-  pu_size_factors %>%
-  plyr::llply(.progress = "text", function(x) {
+  seq_along(pu_size_factors) %>%
+  plyr::llply(.progress = "text", function(i) {
+    ## print resolution for debugging
+    message()
+    message("starting resolution = ", data_parameters$planning_unit_size[i])
+    message()
+    x <- pu_size_factors[i]
     ## create aggregated dataset
     r <- gdal_aggregate_raster(full_pu_raster_data, fact = x, "max")
     ## assign new planning unit ids
