@@ -45,12 +45,12 @@ pu_output <-
     message()
     x <- pu_size_factors[i]
     ## create aggregated dataset
-    r <- gdal_aggregate_raster(full_pu_raster_data, fact = x, "max")
+    r <- raster::aggregate(full_pu_raster_data, fact = x, fun = max)
     ## assign new planning unit ids
     ids <- raster::Which(r > 0, cells = TRUE)
     r[ids] <- ids
     ## disaggregate raster to match resolution original raster
-    r2 <- gdal_disaggregate_raster(r, fact = x, "max")
+    r2 <- raster::disaggregate(r, fact = x, fun = max)
     ## crop raster to match original raster
     r2 <- raster::crop(r2, raster::extent(full_pu_raster_data))
     r2[raster::Which(r2 < 0)] <- NA_real_
