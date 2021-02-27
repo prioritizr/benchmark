@@ -11,7 +11,7 @@ time_limit = 20 # seconds
 threads = 1
 gap = [0.1]
 
-[main]
+[release]
 ## parameters
 number_replicates = 5
 relative_target = [0.01, 0.05, 0.1, 0.15, 0.2, 0.3]
