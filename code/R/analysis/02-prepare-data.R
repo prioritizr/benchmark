@@ -47,7 +47,7 @@ pu_output <-
     ## disaggregate raster to match resolution original raster
     r2 <- gdal_disaggregate_raster(r, fact = x, "max")
     ## crop raster to match original raster
-    r2 <- gdal_warp_raster(r2, full_pu_raster_data, "near")
+    r2 <- raster::crop(r2, raster::extent(full_pu_raster_data))
     r2[raster::Which(r2 < 0)] <- NA_real_
     raster::compareRaster(r2, full_pu_raster_data)
     assertthat::assert_that(all(!is.na(r2[idx])))
