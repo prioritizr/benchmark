@@ -41,19 +41,33 @@ if (general_parameters$threads > 1) {
   if (n_main_thread > 1) {
     ## determine cluster type
     cl_type <- ifelse(.Platform$OS.type == "unix", "FORK", "PSOCK")
+    ## if FORK cluster, then initialize session before creating cluster
+    if (identical(cl_type, "FORK")) {
+      pu_data <- lapply(pu_data_paths, readRDS)
+      bd_data <- lapply(bd_data_paths, readRDS)
+      pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+    }
     ## create cluster
     cl <- parallel::makeCluster(n_main_thread, type = cl_type)
-    ## manually initialize for PSOCK cluster if needed
-    ## (FORK clusters don't need this because they share memory with
-    ##  the main R process)
+    ## if PSOCK cluster, then initialize it
     if (identical(cl_type, "PSOCK")) {
       parallel::clusterEvalQ(cl, {library(dplyr)})
       parallel::clusterExport(cl,
         c("spp_data", "pu_data_paths", "bd_data_paths", "pu_raster_data_paths"))
+      parallel::clusterEvalQ(cl, {
+        pu_data <- lapply(pu_data_paths, readRDS)
+        bd_data <- lapply(bd_data_paths, readRDS)
+        pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+      })
     }
     ## register cluster for plyr
     doParallel::registerDoParallel(cl)
   }
+} else {
+  ## initialize session for non-parallel run
+  pu_data <- lapply(pu_data_paths, readRDS)
+  bd_data <- lapply(bd_data_paths, readRDS)
+  pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
 }
 
 # perform benchmark analysis
@@ -63,18 +77,17 @@ benchmark_results <-
   dplyr::mutate(id2 = seq_len(nrow(.))) %>%
   plyr::ddply(
     "id2",
-    .parallel = TRUE, #exists("cl"),
+    .parallel = exists("cl"),
     .progress = ifelse(exists("cl"), "none", "text"),
     function(x) {
     ## print current run
     message("starting run: ", x$id)
     ## validate arguments
     assertthat::assert_that(nrow(x) == 1)
-    ## import planning unit data
-    pu <- readRDS(pu_data_paths[[x$pu_data]])
     ## create problem
     p <-
-      prioritizr::problem(pu, spp_data$code, cost_column = "cost") %>%
+      prioritizr::problem(
+        pu_data[[x$pu_data]], spp_data$code, cost_column = "cost") %>%
       prioritizr::add_min_set_objective() %>%
       prioritizr::add_relative_targets(x$relative_target) %>%
       prioritizr::add_binary_decisions()
@@ -84,7 +97,7 @@ benchmark_results <-
         p %>%
         prioritizr::add_boundary_penalties(
           x$boundary_penalty,
-          data = readRDS(bd_data_paths[[x$pu_data]]))
+          data = bd_data[[x$pu_data]])
     }
     ## add solver
     ### find solver
@@ -105,34 +118,41 @@ benchmark_results <-
     s <- try(
       prioritizr::solve(p, force = TRUE, run_checks = FALSE),
       silent = TRUE)
-    ## if failed to generate solution then create a fake solution object,
-    ## to store the results
+    ## free memory
+    rm(p, solver_args, solver_fun); gc();
+    ## extract results
     if (inherits(s, "try-error")) {
-      s <- list()
-      attr(s, "objective") <- NA_real_
-      attr(s, "status") <- "ERROR"
-      attr(s, "runtime") <- NA_real_
+      s_objective <- NA_real_
+      s_status <- "ERROR"
+      s_run_time <-  NA_real_
+    } else {
+      s_objective <- attr(s, "objective")[[1]]
+      s_status <- attr(s, "status")[[1]]
+      s_run_time <- as.numeric(attr(s, "runtime")[[1]])
+      s <- dplyr::select(s, "solution_1")
     }
     ## create raster with solution
-    r <- raster::raster(pu_raster_data_paths[[x$pu_data]])
+    r <- pu_raster_data[[x$pu_data]]
     if (inherits(s, "data.frame")) {
       ### create raster with solution values if feasible solution found
-      r[pu$pu] <- s$solution_1
+      r[pu_data[[x$pu_data]]$pu] <- s$solution_1
     } else {
       ### create raster with -1 in all cells to indicate an error
       ### during solving
-      r[pu$pu] <- -1
+      r[pu_data[[x$pu_data]]$pu] <- -1
     }
     ## save solution raster
     n <- paste0("data/intermediate/solutions/", x$id, ".tif")
     raster::writeRaster(r, n, overwrite = TRUE, NAflag = -9999)
+    ## free memory
+    rm(s, r); gc();
     ## prepare outputs
     tibble::tibble(
       id = x$id,
-      objective_value = attr(s, "objective")[[1]],
-      status = attr(s, "status")[[1]],
-      run_time = as.numeric(attr(s, "runtime")[[1]]),
-      exceeded_run_time = (run_time > x$time_limit) + 1,
+      objective_value = s_objective,
+      status = s_status,
+      run_time = as.numeric(s_run_time),
+      exceeded_run_time = (s_run_time > x$time_limit) + 1,
       solution = basename(n))
   }) %>%
   left_join(x = benchmark_results, by = "id")
