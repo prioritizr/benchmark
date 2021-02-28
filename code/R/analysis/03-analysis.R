@@ -70,6 +70,10 @@ if (general_parameters$threads > 1) {
   pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
 }
 
+## print cluster information for logging
+message("benchmark cluster type: ", cl_type)
+message("number of workers in cluster: ", n_main_thread)
+
 # perform benchmark analysis
 benchmark_results <-
   benchmark_results %>%
