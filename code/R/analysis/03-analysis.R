@@ -168,5 +168,8 @@ if (general_parameters$threads > 1) {
   rm(cl)
 }
 
+# clean up
+rm(pu_data, pu_raster_data, bd_data)
+
 # save session
 session::save.session(session_path("03"), compress = FALSE)
