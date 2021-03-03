@@ -1,6 +1,6 @@
 ## variables
-MODE=debug# set parameters for debugging code
-# MODE=release# set parameters for inference
+#MODE=debug# set parameters for debugging code
+MODE=release# set parameters for inference
 
 ## main operations
 open:
@@ -72,7 +72,7 @@ data/raw/planning-units/nplcc_cost_occupancy.zip:
 
 # command to export data so it can be accessed by prioritizr vignette
 export: results/results.rda results/solutions.zip
-	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.2')"
-	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.2')"
+	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.3')"
+	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.3')"
 
 .PHONY: install raw_data analysis export
