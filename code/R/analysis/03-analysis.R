@@ -119,20 +119,24 @@ benchmark_results <-
     ### add solver to problem
     p <- do.call(solver_fun, solver_args)
     ## generate solution
-    s <- try(
-      prioritizr::solve(p, force = TRUE, run_checks = FALSE),
-      silent = TRUE)
+    total_time <- system.time({
+      s <- try(
+        prioritizr::solve(p, force = TRUE, run_checks = FALSE),
+        silent = TRUE)
+    })
     ## free memory
     rm(p, solver_args, solver_fun); gc();
     ## extract results
     if (inherits(s, "try-error")) {
       s_objective <- NA_real_
       s_status <- "ERROR"
-      s_run_time <-  NA_real_
+      s_solver_time <-  NA_real_
+      s_total_time <- NA_real_
     } else {
       s_objective <- attr(s, "objective")[[1]]
       s_status <- attr(s, "status")[[1]]
-      s_run_time <- as.numeric(attr(s, "runtime")[[1]])
+      s_solver_time <- as.numeric(attr(s, "runtime")[[1]])
+      s_total_time <- total_time
       s <- dplyr::select(s, "solution_1")
     }
     ## create raster with solution
@@ -155,8 +159,9 @@ benchmark_results <-
       id = x$id,
       objective_value = s_objective,
       status = s_status,
-      run_time = as.numeric(s_run_time),
-      exceeded_run_time = (s_run_time > x$time_limit) + 1,
+      total_time = as.numeric(s_total_time),
+      run_time = as.numeric(s_solver_time),
+      exceeded_run_time = s_solver_time > (x$time_limit + 1),
       solution = basename(n))
   }) %>%
   left_join(x = benchmark_results, by = "id")
