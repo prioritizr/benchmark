@@ -2,7 +2,7 @@ title = "benchmarking parameters"
 
 [debug]
 ## parameters
-solver = ["add_gurobi_solver", "add_cbc_solver"]
+solver = ["add_gurobi_solver", "add_rsymphony_solver"]
 boundary_penalty_value = [0.0, 0.001]
 relative_target = [0.1, 0.15, 0.2]
 number_replicates = 2

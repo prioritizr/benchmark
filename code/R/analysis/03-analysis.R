@@ -123,7 +123,7 @@ benchmark_results <-
       s <- try(
         prioritizr::solve(p, force = TRUE, run_checks = FALSE),
         silent = TRUE)
-    })
+    })[[3]]
     ## free memory
     rm(p, solver_args, solver_fun); gc();
     ## extract results
