@@ -135,7 +135,7 @@ benchmark_results <-
     } else {
       s_objective <- attr(s, "objective")[[1]]
       s_status <- attr(s, "status")[[1]]
-      s_solver_time <- as.numeric(attr(s, "runtime")[[1]])
+      s_solver_time <- as.numeric(unname(attr(s, "runtime")[[1]]))
       s_total_time <- total_time
       s <- dplyr::select(s, "solution_1")
     }
