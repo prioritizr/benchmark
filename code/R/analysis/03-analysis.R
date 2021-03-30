@@ -14,6 +14,8 @@ benchmark_results <-
   expand.grid(
     pu_data  = seq_along(pu_data_paths),
     number_features = nrow(spp_data),
+    objective = benchmark_parameters$objective,
+    budget = benchmark_parameters$budget,
     relative_target = benchmark_parameters$relative_target,
     boundary_penalty = benchmark_parameters$boundary_penalty_value,
     solver = benchmark_parameters$solver,
@@ -26,6 +28,16 @@ benchmark_results <-
   mutate(id = seq_len(nrow(.))) %>%
   mutate(number_of_planning_units = pu_data_n[pu_data]) %>%
   select(id, pu_data, number_of_planning_units, everything())
+
+## manually set budget to NA for min set objective and remove duplicates
+benchmark_results <-
+  benchmark_results %>%
+  dplyr::mutate(
+    budget = dplyr::if_else(
+      (objective == "add_min_set_objective") & (budget == first(budget)),
+      NA_real_, budget)) %>%
+  dplyr::filter(
+    !((objective == "add_min_set_objective") & !is.na(budget)))
 
 ## print number of rows for logging
 message("total number of benchmark runs: ", nrow(benchmark_results))
@@ -46,6 +58,7 @@ if (general_parameters$threads > 1) {
       pu_data <- lapply(pu_data_paths, readRDS)
       bd_data <- lapply(bd_data_paths, readRDS)
       pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+      total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
     }
     ## create cluster
     cl <- parallel::makeCluster(n_main_thread, type = cl_type)
@@ -58,6 +71,7 @@ if (general_parameters$threads > 1) {
         pu_data <- lapply(pu_data_paths, readRDS)
         bd_data <- lapply(bd_data_paths, readRDS)
         pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+        total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
       })
     }
     ## register cluster for plyr
@@ -68,6 +82,7 @@ if (general_parameters$threads > 1) {
   pu_data <- lapply(pu_data_paths, readRDS)
   bd_data <- lapply(bd_data_paths, readRDS)
   pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+  total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
 }
 
 ## print cluster information for logging
@@ -92,9 +107,21 @@ benchmark_results <-
     p <-
       prioritizr::problem(
         pu_data[[x$pu_data]], spp_data$code, cost_column = "cost") %>%
-      prioritizr::add_min_set_objective() %>%
       prioritizr::add_relative_targets(x$relative_target) %>%
       prioritizr::add_binary_decisions()
+    ## add objective
+    ### find objective
+    obj_fun <- try(getFromNamespace(x$objective, "prioritizr"), silent = TRUE)
+    if (inherits(obj_fun, "try-error")) {
+      stop(paste0(x$solver, " is not a objective in the prioritizr R package"))
+    }
+    ### prepare objective arguments
+    obj_args <- list(x = p, budget = total_cost[[x$pu_data]] * x$budget)
+    ### subset arguments to only include supported arguments
+    obj_args <-
+      obj_args[which(names(obj_args) %in% formalArgs(obj_fun))]
+    ### add objective to problem
+    p <- do.call(obj_fun, obj_args)
     ## add boundary penalties if needed
     if (x$boundary_penalty > 1e-10) {
       p <-
