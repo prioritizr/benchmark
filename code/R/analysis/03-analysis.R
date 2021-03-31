@@ -5,7 +5,8 @@ session::restore.session(session_path("02"))
 benchmark_parameters <-
   RcppTOML::parseTOML("code/parameters/benchmark.toml")[[MODE]]
 
-# create folder to store raster solutions
+# create folder to store results
+dir.create("data/intermediate/runs", showWarnings = FALSE)
 dir.create("data/intermediate/solutions", showWarnings = FALSE)
 
 # initialize benchmark results with metadata for each run
@@ -25,8 +26,11 @@ benchmark_results <-
     replicate = seq_len(benchmark_parameters$number_replicates)) %>%
   tibble::as_tibble() %>%
   dplyr::mutate_if(is.factor, as.character) %>%
-  mutate(id = seq_len(nrow(.))) %>%
   mutate(number_of_planning_units = pu_data_n[pu_data]) %>%
+  mutate(id = vapply(
+    seq_len(nrow(.)), FUN.VALUE = character(1), function(i) {
+      digest::digest(.[i, ])
+  })) %>%
   select(id, pu_data, number_of_planning_units, everything())
 
 ## manually set budget to NA for min set objective and remove duplicates
@@ -103,6 +107,23 @@ benchmark_results <-
     message("starting run: ", x$id)
     ## validate arguments
     assertthat::assert_that(nrow(x) == 1)
+    ## check if run has already been completed and return it if it has
+    ## set file paths
+    raster_path <- paste0("data/intermediate/solutions/", x$id, ".tif")
+    run_path <- paste0("data/intermediate/runs/", x$id, ".rds")
+    if (file.exists(run_path) && file.exists(raster_path)) {
+      ## try to results if they exist
+      out <- try(readRDS(run_path), silent = TRUE)
+      ## if both loaded correctly then just return previous result
+      if (!inherits(out, "try-error") &&
+          !inherits(
+            try(raster::raster(raster_path), silent = TRUE),
+            "try-error")) {
+        out$cache <- TRUE
+        return(out)
+      }
+    }
+    ## otherwise, if run has not been completed then run analysis...
     ## create problem
     p <-
       prioritizr::problem(
@@ -177,19 +198,24 @@ benchmark_results <-
       r[pu_data[[x$pu_data]]$pu] <- -1
     }
     ## save solution raster
-    n <- paste0("data/intermediate/solutions/", x$id, ".tif")
-    raster::writeRaster(r, n, overwrite = TRUE, NAflag = -9999)
+    raster::writeRaster(r, raster_path, overwrite = TRUE, NAflag = -9999)
     ## free memory
     rm(s, r); gc();
     ## prepare outputs
-    tibble::tibble(
-      id = x$id,
-      objective_value = s_objective,
-      status = s_status,
-      total_time = as.numeric(s_total_time),
-      run_time = as.numeric(s_solver_time),
-      exceeded_run_time = s_solver_time > (x$time_limit + 1),
-      solution = basename(n))
+    out <-
+      tibble::tibble(
+        id = x$id,
+        objective_value = s_objective,
+        status = s_status,
+        total_time = as.numeric(s_total_time),
+        run_time = as.numeric(s_solver_time),
+        exceeded_run_time = s_solver_time > (x$time_limit + 1),
+        solution = basename(raster_path),
+        cache = FALSE)
+    ## save output
+    saveRDS(out, run_path, compress = "xz")
+    ## return result
+    out
   }) %>%
   left_join(x = benchmark_results, by = "id")
 
