@@ -2,9 +2,9 @@ title = "benchmarking parameters"
 
 [debug]
 ## parameters
-solver = ["add_gurobi_solver", "add_rsymphony_solver"]
+solver = ["add_gurobi_solver", "add_cbc_solver"]
 objective = ["add_min_set_objective", "add_min_shortfall_objective"]
-boundary_penalty_value = [0.0, 0.001, 0.01]
+boundary_penalty_value = [0.0, 0.01, 1]
 relative_target = [0.1, 0.15, 0.2]
 number_replicates = 2
 budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
@@ -17,7 +17,7 @@ gap = [0.1]
 ## parameters
 number_replicates = 1
 relative_target = [0.1, 0.15, 0.2, 0.3]
-boundary_penalty_value = [0.0, 0.001, 0.01]
+boundary_penalty_value = [0.0, 0.01, 1]
 budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
 solver = ["add_gurobi_solver", "add_rsymphony_solver", "add_cplex_solver", "add_cbc_solver", "add_lpsymphony_solver"]
 objective = ["add_min_set_objective", "add_min_shortfall_objective"]
