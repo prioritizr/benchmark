@@ -1,6 +1,7 @@
 # restore session
 session::restore.session(session_path("02"))
 
+# general_parameters$threads <- 1
 # import parameters
 benchmark_parameters <-
   RcppTOML::parseTOML("code/parameters/benchmark.toml")[[MODE]]
@@ -96,7 +97,7 @@ message("number of workers in cluster: ", n_main_thread)
 # perform benchmark analysis
 benchmark_results <-
   benchmark_results %>%
-  dplyr::sample_frac() %>% # randomize benchmark order
+  # dplyr::sample_frac() %>% # randomize benchmark order
   dplyr::mutate(id2 = seq_len(nrow(.))) %>%
   plyr::ddply(
     "id2",
