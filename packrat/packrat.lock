@@ -452,17 +452,17 @@ Requires: Rcpp, sp
 Package: rcbc
 Source: github
 Version: 0.1.0.9001
-Hash: 0b364a637248e116c93b0a055f1eee71
+Hash: 657c958abaf23a55d6493f3a2d2143d0
 Requires: Rcpp, assertthat
 GithubRepo: rcbc
 GithubUsername: dirkschumacher
 GithubRef: HEAD
-GithubSha1: 1c78b0b852e4db8b38447dcfe5635212bbee14b0
+GithubSha1: 6e851da2eeb8994c6b088ddf36489499b7e3671c
 RemoteHost: api.github.com
 RemoteRepo: rcbc
 RemoteUsername: dirkschumacher
 RemoteRef: HEAD
-RemoteSha: 1c78b0b852e4db8b38447dcfe5635212bbee14b0
+RemoteSha: 6e851da2eeb8994c6b088ddf36489499b7e3671c
 
 Package: readr
 Source: CRAN
