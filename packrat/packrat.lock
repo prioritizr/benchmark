@@ -411,21 +411,12 @@ Hash: d4a3096ec14fbdbf50caeaf27f4e4711
 Requires: Rcpp
 
 Package: prioritizr
-Source: github
-Version: 7.0.0.5
-Hash: e0303e915a97a7fd19f719a52af8a3c9
+Source: CRAN
+Version: 7.0.1
+Hash: 8097c948149b61b5e0bc8935fd778b1b
 Requires: BH, Rcpp, RcppArmadillo, ape, assertthat, data.table,
     doParallel, exactextractr, fasterize, igraph, magrittr, plyr,
     proto, raster, rgeos, sf, slam, sp, tibble, uuid, withr
-GithubRepo: prioritizr
-GithubUsername: prioritizr
-GithubRef: HEAD
-GithubSha1: 57fb208856e563b71fb69f2b612aa09a43f6f054
-RemoteHost: api.github.com
-RemoteRepo: prioritizr
-RemoteUsername: prioritizr
-RemoteRef: HEAD
-RemoteSha: 57fb208856e563b71fb69f2b612aa09a43f6f054
 
 Package: proto
 Source: CRAN
