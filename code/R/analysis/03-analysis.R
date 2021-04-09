@@ -13,18 +13,28 @@ dir.create("data/intermediate/solutions", showWarnings = FALSE)
 # initialize benchmark results with metadata for each run
 ## create data
 benchmark_results <-
-  expand.grid(
-    pu_data  = seq_along(pu_data_paths),
-    number_features = nrow(spp_data),
-    objective = benchmark_parameters$objective,
-    budget = benchmark_parameters$budget,
-    relative_target = benchmark_parameters$relative_target,
-    boundary_penalty = benchmark_parameters$boundary_penalty_value,
-    solver = benchmark_parameters$solver,
-    threads = benchmark_parameters$threads,
-    time_limit = benchmark_parameters$time_limit,
-    gap = benchmark_parameters$gap,
-    replicate = seq_len(benchmark_parameters$number_replicates)) %>%
+  plyr::ldply(benchmark_parameters$objective, function(x) {
+    # validate parameters
+    assertthat::assert_that(
+      is.character(x$name),
+      msg = "invalid benchmark.toml file")
+    assertthat::assert_that(
+      is.numeric(x$boundary_penalty_value),
+      msg = "invalid benchmark.toml file")
+    # generate parameters
+    expand.grid(
+      pu_data  = seq_along(pu_data_paths),
+      number_features = nrow(spp_data),
+      objective = x$name,
+      budget = benchmark_parameters$budget,
+      relative_target = benchmark_parameters$relative_target,
+      boundary_penalty = x$boundary_penalty_value,
+      solver = benchmark_parameters$solver,
+      threads = benchmark_parameters$threads,
+      time_limit = benchmark_parameters$time_limit,
+      gap = benchmark_parameters$gap,
+      replicate = seq_len(benchmark_parameters$number_replicates))
+  }) %>%
   tibble::as_tibble() %>%
   dplyr::mutate_if(is.factor, as.character) %>%
   mutate(number_of_planning_units = pu_data_n[pu_data]) %>%
