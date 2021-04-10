@@ -101,8 +101,8 @@ if (general_parameters$threads > 1) {
 }
 
 ## print cluster information for logging
-message("benchmark cluster type: ", cl_type)
-message("number of workers in cluster: ", n_main_thread)
+# message("benchmark cluster type: ", cl_type)
+# message("number of workers in cluster: ", n_main_thread)
 
 # perform benchmark analysis
 benchmark_results <-
@@ -155,7 +155,7 @@ benchmark_results <-
     ### add objective to problem
     p <- do.call(obj_fun, obj_args)
     ## add boundary penalties if needed
-    if (x$boundary_penalty > 1e-10) {
+    if (x$boundary_penalty > 1e-15) {
       p <-
         p %>%
         prioritizr::add_boundary_penalties(
