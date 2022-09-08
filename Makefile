@@ -1,6 +1,6 @@
 ## variables
-MODE=debug# set parameters for debugging code
-# MODE=release# set parameters for inference
+# MODE=debug# set parameters for debugging code
+MODE=release# set parameters for inference
 
 ## main operations
 open:
