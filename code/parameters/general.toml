@@ -1,7 +1,7 @@
 title = "general parameters"
 
 [debug]
-threads = 10
+threads = 1
 raster_maxmemory = 1.0e+11 #100GB
 raster_chunksize =1.0e+10 #10GB
 
