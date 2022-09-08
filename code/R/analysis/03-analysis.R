@@ -1,7 +1,6 @@
 # restore session
 session::restore.session(session_path("02"))
 
-# general_parameters$threads <- 1
 # import parameters
 benchmark_parameters <-
   RcppTOML::parseTOML("code/parameters/benchmark.toml")[[MODE]]
@@ -92,28 +91,22 @@ if (general_parameters$threads > 1) {
     ## register cluster for plyr
     doParallel::registerDoParallel(cl)
   }
+  ## print cluster information for logging
+  message("benchmark cluster type: ", cl_type)
+  message("number of workers in cluster: ", n_main_thread)
 } else {
   ## initialize session for non-parallel run
   pu_data <- lapply(pu_data_paths, readRDS)
   bd_data <- lapply(bd_data_paths, readRDS)
   pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
   total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
+  ## print cluster information for logging
+  message("benchmark cluster type: none")
+  message("number of workers in cluster: 1")
 }
 
-## print cluster information for logging
-# message("benchmark cluster type: ", cl_type)
-# message("number of workers in cluster: ", n_main_thread)
-
-# perform benchmark analysis
-benchmark_results <-
-  benchmark_results %>%
-  # dplyr::sample_frac() %>% # randomize benchmark order
-  dplyr::mutate(id2 = seq_len(nrow(.))) %>%
-  plyr::ddply(
-    "id2",
-    .parallel = exists("cl"),
-    .progress = ifelse(exists("cl"), "none", "text"),
-    function(x) {
+# define benchmark function
+bench_fun <- function(x) {
     ## print current run
     message("starting run: ", x$id)
     ## validate arguments
@@ -131,6 +124,7 @@ benchmark_results <-
             try(raster::raster(raster_path), silent = TRUE),
             "try-error")) {
         out$cache <- TRUE
+        message("  loading result from cache")
         return(out)
       }
     }
@@ -227,10 +221,48 @@ benchmark_results <-
     saveRDS(out, run_path, compress = "xz")
     ## return result
     out
-  }) %>%
-  left_join(x = benchmark_results, by = "id")
+}
 
-# clean up parallel processing workers
+# perform benchmark analysis
+## do runs without lpsymphony with optional parallel processing
+## to avoid fork bombs
+benchmark_results_part_1 <-
+  benchmark_results %>%
+  dplyr::mutate(id2 = seq_len(nrow(.))) %>%
+  dplyr::filter(solver != "add_lpsymphony_solver") %>%
+  plyr::ddply(
+    "id2",
+    .parallel = exists("cl"),
+    .progress = ifelse(exists("cl"), "none", "text"),
+    bench_fun
+  )
+
+## do runs for lpsymphony separately
+if ("add_lpsymphony_solver" %in% benchmark_results$solver) {
+  benchmark_results_part_2 <-
+    benchmark_results %>%
+    dplyr::mutate(id2 = seq_len(nrow(.))) %>%
+    dplyr::filter(solver == "add_lpsymphony_solver") %>%
+    plyr::ddply(
+      "id2",
+      .parallel = FALSE,
+      .progress = "text",
+      bench_fun
+    )
+}
+
+## merge runs together
+if ("add_lpsymphony_solver" %in% benchmark_results$solver) {
+  benchmark_results <-
+    dplyr::bind_rows(benchmark_results_part_1, benchmark_results_part_2) %>%
+    left_join(x = benchmark_results, by = "id")
+} else {
+  benchmark_results <-
+    benchmark_results_part_1 %>%
+    left_join(x = benchmark_results, by = "id")
+}
+
+## clean up parallel processing workers
 if (general_parameters$threads > 1) {
   cl <- parallel::stopCluster(cl)
   doParallel::stopImplicitCluster()
@@ -238,7 +270,10 @@ if (general_parameters$threads > 1) {
 }
 
 # clean up
-rm(pu_data, pu_raster_data, bd_data)
+rm(
+  pu_data, pu_raster_data, bd_data,
+  benchmark_results_part_1, benchmark_results_part_2
+)
 
 # save session
 session::save.session(session_path("03"), compress = FALSE)
