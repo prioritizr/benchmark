@@ -1,6 +1,6 @@
 ## variables
-#MODE=debug# set parameters for debugging code
-MODE=release# set parameters for inference
+MODE=debug# set parameters for debugging code
+# MODE=release# set parameters for inference
 
 ## main operations
 open:
@@ -50,15 +50,11 @@ data/intermediate/00-*.rda: code/R/analysis/00-*.R code/parameters/general.toml 
 
 # command to install dependencies
 install:
-	R CMD BATCH --no-restore --no-save '--args --bootstrap-packrat' packrat/init.R
+	R CMD BATCH --no-restore --no-save code/R/scripts/init.R
 	mv -f *.Rout data/intermediate/
 
-# packrat commands
-packrat_update_local_packages:
-	R -e "packrat::install('../prioritizr', build_vignettes = FALSE)"
-
-packrat_snapshot:
-	R -e "packrat::snapshot(infer = FALSE)"
+snapshot:
+	R -e "renv::snapshot()"
 
 # command to make readme
 readme:
@@ -72,7 +68,7 @@ data/raw/planning-units/nplcc_cost_occupancy.zip:
 
 # command to export data so it can be accessed by prioritizr vignette
 export: results/results.rda results/solutions.zip
-	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.3')"
-	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.3')"
+	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.4')"
+	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.4')"
 
 .PHONY: install raw_data analysis export
