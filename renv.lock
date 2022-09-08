@@ -1042,9 +1042,9 @@
       "RemoteUsername": "prioritizr",
       "RemoteRepo": "prioritizr",
       "RemoteRef": "highs-solver",
-      "RemoteSha": "c0b2f78dcc240fc2ad309bc6eba70dc6b503ada4",
+      "RemoteSha": "f824110faca6c08918bc6d942809dc3ce0008875",
       "Remotes": "dirkschumacher/rcbc, cran/cplexAPI, bioc::release/lpsymphony",
-      "Hash": "30fc1515931503982b63f6a5a8183ebb",
+      "Hash": "55dc6b2c20598b91fc2be8061d9677a7",
       "Requirements": [
         "BH",
         "Matrix",
