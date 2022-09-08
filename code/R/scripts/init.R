@@ -28,5 +28,8 @@ f <- cplexAPI::mipoptCPLEX
 # renv::install("cran/session")
 f <- session::restore.session
 
+# renv::install("prioritizr/prioritizr@highs-solver")
+f <- prioritizr::add_highs_solver
+
 # print success
 message("successfully initialized packages!")
