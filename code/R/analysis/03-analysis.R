@@ -56,6 +56,41 @@ benchmark_results <-
 ## print number of rows for logging
 message("total number of benchmark runs: ", nrow(benchmark_results))
 
+# add columns to benchmark data
+benchmark_results <-
+  benchmark_results %>%
+  # add file paths to the benchmark data
+  dplyr::mutate(
+    raster_path = paste0("data/intermediate/solutions/", id, ".tif"),
+    run_path = paste0("data/intermediate/runs/", id, ".rds")
+  ) %>%
+  # find out which runs have already been processed
+  ## first pass is to see if output files actually exists...
+  dplyr::mutate(
+    cache = file.exists(raster_path) & file.exists(run_path)
+  ) %>%
+  ## second pass is to see if the output files contain meaningful data...
+  plyr::dlply("id", function(x) {
+    if (!x$cache) return(x)
+    valid_raster <- !inherits(
+      try(raster::raster(x$raster_path), silent = TRUE),
+      "try-error"
+    )
+    valid_run <- !inherits(
+      try(readRDS(x$run_path), silent = TRUE),
+      "try-error"
+    )
+    x$cache <- valid_raster && valid_run
+    x
+  }) %>%
+  dplyr::bind_rows()
+
+## print number of rows that have not already been processed
+message(
+  "total number of remaining benchmark runs: ",
+  sum(benchmark_results$cache)
+)
+
 # prepare cluster for parallel processing
 if (general_parameters$threads > 1) {
   ## determine number of threads to use for running benchmark analysis
@@ -111,23 +146,6 @@ bench_fun <- function(x) {
     message("starting run: ", x$id)
     ## validate arguments
     assertthat::assert_that(nrow(x) == 1)
-    ## check if run has already been completed and return it if it has
-    ## set file paths
-    raster_path <- paste0("data/intermediate/solutions/", x$id, ".tif")
-    run_path <- paste0("data/intermediate/runs/", x$id, ".rds")
-    if (file.exists(run_path) && file.exists(raster_path)) {
-      ## try to results if they exist
-      out <- try(readRDS(run_path), silent = TRUE)
-      ## if both loaded correctly then just return previous result
-      if (!inherits(out, "try-error") &&
-          !inherits(
-            try(raster::raster(raster_path), silent = TRUE),
-            "try-error")) {
-        out$cache <- TRUE
-        message("  loading result from cache")
-        return(out)
-      }
-    }
     ## otherwise, if run has not been completed then run analysis...
     ## create problem
     p <-
@@ -203,7 +221,7 @@ bench_fun <- function(x) {
       r[pu_data[[x$pu_data]]$pu] <- -1
     }
     ## save solution raster
-    raster::writeRaster(r, raster_path, overwrite = TRUE, NAflag = -9999)
+    raster::writeRaster(r, x$raster_path, overwrite = TRUE, NAflag = -9999)
     ## free memory
     rm(s, r); gc();
     ## prepare outputs
@@ -215,22 +233,23 @@ bench_fun <- function(x) {
         total_time = as.numeric(s_total_time),
         run_time = as.numeric(s_solver_time),
         exceeded_run_time = s_solver_time > (x$time_limit + 1),
-        solution = basename(raster_path),
-        cache = FALSE)
+        solution = basename(x$raster_path)
+      )
     ## save output
-    saveRDS(out, run_path, compress = "xz")
-    ## return result
-    out
+    saveRDS(out, x$run_path, compress = "xz")
+    ## return success
+    TRUE
 }
 
 # perform benchmark analysis
 ## do runs without lpsymphony with optional parallel processing
 ## to avoid fork bombs
-benchmark_results_part_1 <-
+results_part_1 <-
   benchmark_results %>%
+  dplyr::filter(!cache) %>%
   dplyr::mutate(id2 = seq_len(nrow(.))) %>%
   dplyr::filter(solver != "add_lpsymphony_solver") %>%
-  plyr::ddply(
+  plyr::dlply(
     "id2",
     .parallel = exists("cl"),
     .progress = ifelse(exists("cl"), "none", "text"),
@@ -239,11 +258,12 @@ benchmark_results_part_1 <-
 
 ## do runs for lpsymphony separately
 if ("add_lpsymphony_solver" %in% benchmark_results$solver) {
-  benchmark_results_part_2 <-
+  results_part_2 <-
     benchmark_results %>%
+    dplyr::filter(!cache) %>%
     dplyr::mutate(id2 = seq_len(nrow(.))) %>%
     dplyr::filter(solver == "add_lpsymphony_solver") %>%
-    plyr::ddply(
+    plyr::dlply(
       "id2",
       .parallel = FALSE,
       .progress = "text",
@@ -253,14 +273,16 @@ if ("add_lpsymphony_solver" %in% benchmark_results$solver) {
 
 ## merge runs together
 if ("add_lpsymphony_solver" %in% benchmark_results$solver) {
-  benchmark_results <-
-    dplyr::bind_rows(benchmark_results_part_1, benchmark_results_part_2) %>%
-    left_join(x = benchmark_results, by = "id")
+  results <- append(results_part_1, results_part_2)
 } else {
-  benchmark_results <-
-    benchmark_results_part_1 %>%
-    left_join(x = benchmark_results, by = "id")
+  results <- results_part_1
 }
+
+## verify that everything worked
+assertthat::assert_that(
+  all(unlist(results, recursive = TRUE, use.names = FALSE)),
+  msg = "some benchmark runs failed, try debugging this manually..."
+)
 
 ## clean up parallel processing workers
 if (general_parameters$threads > 1) {
@@ -269,10 +291,19 @@ if (general_parameters$threads > 1) {
   rm(cl)
 }
 
+# import results
+benchmark_results <-
+  benchmark_results %>%
+  dplyr::left_join(
+    dplyr::bind_rows(lapply(benchmark_results$run_path, readRDS)),
+    by = "id"
+  ) %>%
+  tibble::as_tibble()
+
 # clean up
 rm(
   pu_data, pu_raster_data, bd_data,
-  benchmark_results_part_1, benchmark_results_part_2
+  results, results_part_1, results_part_2
 )
 
 # save session
