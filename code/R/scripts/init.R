@@ -47,5 +47,10 @@ f <- highs::highs_solve
 # gurobi R package on system
 f <- gurobi::gurobi
 
+# packages for progress bars
+f <- doParallel::registerDoParallel
+f <- foreach::foreach
+f <- iterators::iter
+
 # print success
 message("successfully initialized packages!")
