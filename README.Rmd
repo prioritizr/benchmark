@@ -17,9 +17,6 @@ knitr::knit_exit()
 ```{r, include = FALSE}
 # load results
 load("data/final/results.rda")
-
-# define functions
-source("code/R/functions/helpers.R")
 ```
 
 ## Summary
@@ -44,7 +41,7 @@ This repository is organized as follows:
 * _results_:
     + `results.rda`: Rdata file containing the results.
     + `solutions.tif` GeoTIFF files containing solutions form benchmark runs.
-* _renv_: [_R_ package management](https://rstudio.github.io/packrat/).
+* _renv_: [_R_ package management](https://rstudio.github.io/renv/).
 
 Note that the files in the _results_ directory are created after completing benchmark analysis. They are not present in the online repository. If you wish to access the results completed on our systems, please see files attached the [Results storage release](https://github.com/prioritizr/benchmark/releases).
 

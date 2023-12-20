@@ -56,8 +56,7 @@ This repository is organized as follows:
     -   `results.rda`: Rdata file containing the results.
     -   `solutions.tif` GeoTIFF files containing solutions form
         benchmark runs.
--   *packrat*: [*R* package
-    management](https://rstudio.github.io/packrat/).
+-   *renv*: [*R* package management](https://rstudio.github.io/renv/).
 
 Note that the files in the *results* directory are created after
 completing benchmark analysis. They are not present in the online
@@ -74,7 +73,7 @@ release](https://github.com/prioritizr/benchmark/releases).
         cost)](http://www.gurobi.com/)
     -   [*IBM CPLEX* (academic licenses are available for no
         cost)](https://www.ibm.com/analytics/cplex-optimizer)
-    -   [R (version 4.2.0+)](https://www.r-project.org)
+    -   [R (version 4.3.1+)](https://www.r-project.org)
 -   System packages (Ubuntu operating system):
     -   gdal-bin
     -   libjq-dev
