@@ -4,7 +4,7 @@ title = "benchmarking parameters"
 ## parameters
 solver = ["add_gurobi_solver", "add_cbc_solver", "add_highs_solver"]
 relative_target = [0.1, 0.15, 0.2]
-number_replicates = 2
+number_replicates = 1
 budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
 ## solver arguments
 time_limit = 20 # seconds
@@ -13,25 +13,25 @@ gap = [0.1]
 ## objective parameters
 [[debug.objective]]
 name = "add_min_set_objective"
-boundary_penalty_value = [0.0, 0.01]
+boundary_penalty_value = [0.0, 0.001, 0.1]
 [[debug.objective]]
 name = "add_min_shortfall_objective"
-boundary_penalty_value = [0.0]
+boundary_penalty_value = [0.0, 0.0000000001, 0.000000001]
 
 [release]
 ## parameters
-number_replicates = 1
-relative_target = [0.1, 0.15, 0.2, 0.3]
-budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
 solver = ["add_gurobi_solver", "add_cplex_solver", "add_highs_solver", "add_cbc_solver", "add_lpsymphony_solver", "add_rsymphony_solver"]
+relative_target = [0.1, 0.15, 0.2, 0.3]
+number_replicates = 1
+budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
 ## solver arguments
 time_limit = 1e+8 # seconds
 threads = 1
-gap = [0.05]
+gap = [0.1]
 ## objective parameters
 [[release.objective]]
 name = "add_min_set_objective"
-boundary_penalty_value = [0.0, 0.00001, 0.001]
+boundary_penalty_value = [0.0, 0.001, 0.1]
 [[release.objective]]
 name = "add_min_shortfall_objective"
-boundary_penalty_value = [0.0, 0.00000000000001, 0.0000000000001]
+boundary_penalty_value = [0.0, 0.0000000001, 0.000000001]

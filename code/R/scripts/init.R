@@ -1,23 +1,39 @@
 # restore library
 renv::restore()
 
-# install packages from source (not available online)
-renv::install("/opt/gurobi952/linux64/R/gurobi_9.5-2_R_4.2.0.tar.gz")
-renv::install(normalizePath("code/sources/highs_0.1-3.tar.gz"))
+# install gurobi R package
+if (identical(.Platform$OS.type, "unix")) {
+  path <-dir(
+    paste0(Sys.getenv("GUROBI_HOME"), "/R"), "^.*\\.tar\\.gz",
+    full.names = TRUE
+  )
+} else {
+  path <-dir(
+    paste0(Sys.getenv("GUROBI_HOME"), "/R"), "^.*\\.zip",
+    full.names = TRUE
+  )
+}
+if (nzchar(path)) {
+  message("Found gurobi R package here:")
+  message(paste0("  "), path)
+} else {
+  stop("Couldn't find gurobi R package via GUROBI_HOME environmental variable")
+}
+renv::install(path)
 
 # ensure additional packages are included in renv (available from CRAN/GitHub)
 
-# renv::install("Rsymphony")
-f <- Rsymphony::Rsymphony_solve_LP
-
-# renv::install("rgdal")
-f <- rgdal::readOGR
+# renv::install("cran/session")
+f <- session::restore.session
 
 # renv::install("piggyback")
 f <- piggyback::pb_download
 
+# renv::install("Rsymphony")
+f <- Rsymphony::Rsymphony_solve_LP
+
 # renv::install("bioc::lpsymphony")
-f <- lpsymphony::Rsymphony_solve_LP
+f <- lpsymphony::lpsymphony_solve_LP
 
 # renv::install("dirkschumacher/rcbc")
 f <- rcbc::cbc_solve
@@ -25,11 +41,11 @@ f <- rcbc::cbc_solve
 # renv::install("cran/cplexAPI")
 f <- cplexAPI::mipoptCPLEX
 
-# renv::install("cran/session")
-f <- session::restore.session
+# renv::install("highs")
+f <- highs::highs_solve
 
-# renv::install("prioritizr/prioritizr@highs-solver")
-f <- prioritizr::add_highs_solver
+# gurobi R package on system
+f <- gurobi::gurobi
 
 # print success
 message("successfully initialized packages!")

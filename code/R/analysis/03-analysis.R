@@ -1,5 +1,5 @@
 # restore session
-session::restore.session(session_path("02"))
+restore_session("02")
 
 # import parameters
 benchmark_parameters <-
@@ -16,10 +16,12 @@ benchmark_results <-
     # validate parameters
     assertthat::assert_that(
       is.character(x$name),
-      msg = "invalid benchmark.toml file")
+      msg = "invalid benchmark.toml file"
+    )
     assertthat::assert_that(
       is.numeric(x$boundary_penalty_value),
-      msg = "invalid benchmark.toml file")
+      msg = "invalid benchmark.toml file"
+    )
     # generate parameters
     expand.grid(
       pu_data  = seq_along(pu_data_paths),
@@ -32,7 +34,8 @@ benchmark_results <-
       threads = benchmark_parameters$threads,
       time_limit = benchmark_parameters$time_limit,
       gap = benchmark_parameters$gap,
-      replicate = seq_len(benchmark_parameters$number_replicates))
+      replicate = seq_len(benchmark_parameters$number_replicates)
+    )
   }) %>%
   tibble::as_tibble() %>%
   dplyr::mutate_if(is.factor, as.character) %>%
@@ -49,9 +52,13 @@ benchmark_results <-
   dplyr::mutate(
     budget = dplyr::if_else(
       (objective == "add_min_set_objective") & (budget == first(budget)),
-      NA_real_, budget)) %>%
+      NA_real_,
+      budget
+    )
+  ) %>%
   dplyr::filter(
-    !((objective == "add_min_set_objective") & !is.na(budget)))
+    !((objective == "add_min_set_objective") & !is.na(budget))
+  )
 
 ## print number of rows for logging
 message("total number of benchmark runs: ", nrow(benchmark_results))
@@ -73,7 +80,7 @@ benchmark_results <-
   plyr::dlply("id", function(x) {
     if (!x$cache) return(x)
     valid_raster <- !inherits(
-      try(raster::raster(x$raster_path), silent = TRUE),
+      try(terra::rast(x$raster_path), silent = TRUE),
       "try-error"
     )
     valid_run <- !inherits(
@@ -106,7 +113,7 @@ if (general_parameters$threads > 1) {
     if (identical(cl_type, "FORK")) {
       pu_data <- lapply(pu_data_paths, readRDS)
       bd_data <- lapply(bd_data_paths, readRDS)
-      pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+      pu_raster_data <- lapply(pu_raster_data_paths, terra::rast)
       total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
     }
     ## create cluster
@@ -119,7 +126,7 @@ if (general_parameters$threads > 1) {
       parallel::clusterEvalQ(cl, {
         pu_data <- lapply(pu_data_paths, readRDS)
         bd_data <- lapply(bd_data_paths, readRDS)
-        pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+        pu_raster_data <- lapply(pu_raster_data_paths, terra::rast)
         total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
       })
     }
@@ -133,7 +140,7 @@ if (general_parameters$threads > 1) {
   ## initialize session for non-parallel run
   pu_data <- lapply(pu_data_paths, readRDS)
   bd_data <- lapply(bd_data_paths, readRDS)
-  pu_raster_data <- lapply(pu_raster_data_paths, raster::raster)
+  pu_raster_data <- lapply(pu_raster_data_paths, terra::rast)
   total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
   ## print cluster information for logging
   message("benchmark cluster type: none")
@@ -150,40 +157,49 @@ bench_fun <- function(x) {
     ## create problem
     p <-
       prioritizr::problem(
-        pu_data[[x$pu_data]], spp_data$code, cost_column = "cost") %>%
+        pu_data[[x$pu_data]], spp_data$code, cost_column = "cost"
+      ) %>%
       prioritizr::add_relative_targets(x$relative_target) %>%
       prioritizr::add_binary_decisions()
     ## add objective
     ### find objective
     obj_fun <- try(getFromNamespace(x$objective, "prioritizr"), silent = TRUE)
     if (inherits(obj_fun, "try-error")) {
-      stop(paste0(x$solver, " is not a objective in the prioritizr R package"))
+      stop(
+        paste0(
+          "`", x$objective,
+          "` is not an objective in the prioritizr R package"
+        )
+      )
     }
     ### prepare objective arguments
     obj_args <- list(x = p, budget = total_cost[[x$pu_data]] * x$budget)
     ### subset arguments to only include supported arguments
-    obj_args <-
-      obj_args[which(names(obj_args) %in% formalArgs(obj_fun))]
+    obj_args <- obj_args[which(names(obj_args) %in% formalArgs(obj_fun))]
     ### add objective to problem
     p <- do.call(obj_fun, obj_args)
     ## add boundary penalties if needed
     if (x$boundary_penalty > 1e-15) {
       p <-
-        p %>%
         prioritizr::add_boundary_penalties(
+          p,
           x$boundary_penalty,
-          data = bd_data[[x$pu_data]])
+          data = bd_data[[x$pu_data]]
+        )
     }
     ## add solver
     ### find solver
     solver_fun <- try(getFromNamespace(x$solver, "prioritizr"), silent = TRUE)
     if (inherits(solver_fun, "try-error")) {
-      stop(paste0(x$solver, " is not a solver in the prioritizr R package"))
+      stop(
+        paste0("`", x$solver, "` is not a solver in the prioritizr R package")
+      )
     }
     ### prepare solver arguments
-    solver_args <-
-      list(x = p, threads = x$threads, time_limit = x$time_limit, gap = x$gap,
-           verbose = FALSE)
+    solver_args <- list(
+      x = p, threads = x$threads, time_limit = x$time_limit, gap = x$gap,
+      verbose = FALSE
+    )
     ### subset arguments to only include supported arguments
     solver_args <-
       solver_args[which(names(solver_args) %in% formalArgs(solver_fun))]
@@ -192,11 +208,13 @@ bench_fun <- function(x) {
     ## generate solution
     total_time <- system.time({
       s <- try(
-        prioritizr::solve(p, force = TRUE, run_checks = FALSE),
-        silent = TRUE)
+        solve(p, force = TRUE, run_checks = FALSE),
+        silent = TRUE
+      )
     })[[3]]
     ## free memory
-    rm(p, solver_args, solver_fun); gc();
+    rm(p, solver_args, solver_fun)
+    gc()
     ## extract results
     if (inherits(s, "try-error")) {
       s_objective <- NA_real_
@@ -221,20 +239,20 @@ bench_fun <- function(x) {
       r[pu_data[[x$pu_data]]$pu] <- -1
     }
     ## save solution raster
-    raster::writeRaster(r, x$raster_path, overwrite = TRUE, NAflag = -9999)
+    terra::writeRaster(r, x$raster_path, overwrite = TRUE, NAflag = -9999)
     ## free memory
-    rm(s, r); gc();
+    rm(s, r)
+    gc()
     ## prepare outputs
-    out <-
-      tibble::tibble(
-        id = x$id,
-        objective_value = s_objective,
-        status = s_status,
-        total_time = as.numeric(s_total_time),
-        run_time = as.numeric(s_solver_time),
-        exceeded_run_time = s_solver_time > (x$time_limit + 1),
-        solution = basename(x$raster_path)
-      )
+    out <- tibble::tibble(
+      id = x$id,
+      objective_value = s_objective,
+      status = s_status,
+      total_time = as.numeric(s_total_time),
+      run_time = as.numeric(s_solver_time),
+      exceeded_run_time = s_solver_time > (x$time_limit + 1),
+      solution = basename(x$raster_path)
+    )
     ## save output
     saveRDS(out, x$run_path, compress = "xz")
     ## return success
@@ -307,4 +325,4 @@ rm(
 )
 
 # save session
-session::save.session(session_path("03"), compress = FALSE)
+save_session("03")

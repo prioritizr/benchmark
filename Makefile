@@ -1,9 +1,9 @@
 ## variables
-# MODE=debug# set parameters for debugging code
-MODE=release# set parameters for inference
+MODE=debug# set parameters for debugging code
+# MODE=release# set parameters for inference
 
 ## main operations
-open:
+R:
 	R --quiet --no-save
 
 all: install raw_data analysis
@@ -44,7 +44,7 @@ data/intermediate/01-*.rda: data/intermediate/00-*.rda code/R/analysis/01-*.R
 	R CMD BATCH --no-restore --no-save code/R/analysis/01-*.R
 	mv -f *.Rout data/intermediate/
 
-data/intermediate/00-*.rda: code/R/analysis/00-*.R code/parameters/general.toml code/R/functions/misc.R code/R/functions/session_path.R code/R/functions/gdal_functions.R
+data/intermediate/00-*.rda: code/R/analysis/00-*.R code/parameters/general.toml code/R/functions/session.R
 	R CMD BATCH --no-restore --no-save '--args MODE=$(MODE)' code/R/analysis/00-*.R
 	mv -f *.Rout data/intermediate/
 
