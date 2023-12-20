@@ -28,10 +28,8 @@ data/raw/planning-units/*zip
 results/results.rda
 results/solutions.zip
 
-# packrat library files
-packrat/lib
-packrat/lib-R
+# renv library files
+renv/library
 
 # do not ignore the following files
 !*.gitkeep
-packrat/lib*/
