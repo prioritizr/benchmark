@@ -68,7 +68,7 @@ data/raw/planning-units/nplcc_cost_occupancy.zip:
 
 # command to export data so it can be accessed by prioritizr vignette
 export: results/results.rda results/solutions.zip
-	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.4')"
-	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.4')"
+	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.6')"
+	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.6')"
 
 .PHONY: install raw_data analysis export
