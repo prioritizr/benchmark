@@ -7,9 +7,7 @@ data_parameters <-
 
 # import data
 full_pu_data <- readRDS(full_pu_data_path)
-full_pu_raster_data <-
-  full_pu_raster_data_path %>%
-  terra::rast()
+full_pu_raster_data <- terra::rast(full_pu_raster_data_path)
 
 # generate different sized planning units for benchmark analysis
 ## calculate aggregation factors
@@ -21,8 +19,8 @@ pu_size_factors <- round(pu_size_factors) # avoid floating point issues
 ## validate aggregation factors
 assertthat::assert_that(all(pu_size_factors >= 1))
 
-## find indices of planning units in full dataset
-idx <- terra::cells(is.na(full_pu_raster_data), 0)[[1]]
+## find coordinates of planning units in full dataset
+pu_xy <- terra::xyFromCell(full_pu_raster_data, full_pu_data$pu)
 
 ## set non-planning unit indices to -1 so that aggregating/disaggregating
 ## data works
@@ -38,24 +36,22 @@ pu_output <-
     message("")
     message("starting resolution = ", data_parameters$planning_unit_size[i])
     message("")
-    x <- pu_size_factors[i]
     ## create aggregated dataset
+    x <- pu_size_factors[i]
     r <- terra::aggregate(full_pu_raster_data, fact = x, fun = "max")
-    ## assign new planning unit ids
-    ids <- terra::cells(r > 0, 1)[[1]]
-    r[ids] <- ids
-    ## disaggregate raster to match resolution original raster
-    r2 <- terra::disagg(r, fact = x)
-    ## crop raster to match original raster
-    r2 <- terra::crop(r2, terra::ext(full_pu_raster_data))
-    r2[r2 < 0] <- NA_real_
+    ## get indices for planning units
+    idx <- terra::cellFromXY(r, pu_xy)
+    ## create planning unit ids
+    r_idx <- unique(idx)
+    r_ids <- seq_along(r_idx)
+    r[] <- NA_real_
+    r[r_idx] <- r_ids
     ## sanity checks
-    terra::compareGeom(r2, full_pu_raster_data, stopOnError = FALSE)
-    assertthat::assert_that(all(!is.na(r2[idx])))
+    assertthat::assert_that(all(!is.na(r[idx][[1]])))
     ## create planning unit data for given resolution, including spp data
     d <-
       full_pu_data %>%
-      dplyr::mutate(pu = r2[idx][[1]]) %>%
+      dplyr::mutate(pu = r[idx][[1]]) %>%
       dplyr::group_by(pu) %>%
       dplyr::summarize_all(sum) %>%
       dplyr::ungroup()
@@ -63,12 +59,12 @@ pu_output <-
     d$cost <- (d$cost / max(d$cost)) * 1e4
     ## validate result
     assertthat::assert_that(
-      nrow(d) == length(ids),
+      nrow(d) == length(r_ids),
       msg = "failed to create dataset with different resolution"
     )
     ## create raster to store planning units
     r <- terra::setValues(r, NA_real_)
-    r[ids] <- 1
+    r[r_idx] <- 1
     ## return result
     list(data = d, raster = r)
   })
