@@ -7,7 +7,7 @@ relative_target = [0.1, 0.15, 0.2]
 number_replicates = 1
 budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
 ## solver arguments
-time_limit = 20 # seconds
+time_limit = 5 # seconds
 threads = 1
 gap = [0.1]
 ## objective parameters
