@@ -33,7 +33,7 @@ data/final/results.rda: data/intermediate/03-*.rda code/R/analysis/04-*.R
 	mv -f *.Rout data/intermediate/
 
 data/intermediate/03-*.rda: data/intermediate/02-*.rda code/R/analysis/03-*.R code/parameters/benchmark.toml
-	R CMD BATCH --no-restore --no-save code/R/analysis/03-*.R
+	export R_PROGRESSR_ENABLE=TRUE && R CMD BATCH --no-restore --no-save code/R/analysis/03-*.R
 	mv -f *.Rout data/intermediate/
 
 data/intermediate/02-*.rda: data/intermediate/01-*.rda code/R/analysis/02-*.R code/parameters/data.toml

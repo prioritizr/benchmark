@@ -98,66 +98,30 @@ message(
   sum(benchmark_results$cache)
 )
 
-# prepare cluster for parallel processing
+# perform benchmark analysis
+## set cluster
 if (general_parameters$threads > 1) {
-  ## determine number of threads to use for running benchmark analysis
-  ## in parallel
-  n_main_thread <-
-    floor(general_parameters$threads /  max(benchmark_parameters$threads))
-  ## if we can run the benchmark analysis in parallel because
-  ## the user isn't trying to fork bomb their computer
-  if (n_main_thread > 1) {
-    ## determine cluster type
-    cl_type <- ifelse(.Platform$OS.type == "unix", "FORK", "PSOCK")
-    ## if FORK cluster, then initialize session before creating cluster
-    if (identical(cl_type, "FORK")) {
-      pu_data <- lapply(pu_data_paths, readRDS)
-      bd_data <- lapply(bd_data_paths, readRDS)
-      pu_raster_data <- lapply(pu_raster_data_paths, terra::rast)
-      total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
-    }
-    ## create cluster
-    cl <- parallel::makeCluster(n_main_thread, type = cl_type)
-    ## if PSOCK cluster, then initialize it
-    if (identical(cl_type, "PSOCK")) {
-      parallel::clusterEvalQ(cl, {library(dplyr)})
-      parallel::clusterExport(cl,
-        c("spp_data", "pu_data_paths", "bd_data_paths", "pu_raster_data_paths"))
-      parallel::clusterEvalQ(cl, {
-        pu_data <- lapply(pu_data_paths, readRDS)
-        bd_data <- lapply(bd_data_paths, readRDS)
-        pu_raster_data <- lapply(pu_raster_data_paths, terra::rast)
-        total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
-      })
-    }
-    ## register cluster for plyr
-    doParallel::registerDoParallel(cl)
-  }
-  ## print cluster information for logging
-  message("benchmark cluster type: ", cl_type)
-  message("number of workers in cluster: ", n_main_thread)
+  future::plan("multisession", workers = general_parameters$threads)
 } else {
-  ## initialize session for non-parallel run
-  pu_data <- lapply(pu_data_paths, readRDS)
-  bd_data <- lapply(bd_data_paths, readRDS)
-  pu_raster_data <- lapply(pu_raster_data_paths, terra::rast)
-  total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
-  ## print cluster information for logging
-  message("benchmark cluster type: none")
-  message("number of workers in cluster: 1")
+  future::plan("sequential")
 }
 
 # define benchmark function
-bench_fun <- function(x) {
+bench_fun <- function(id) {
     ## print current run
-    message("starting run: ", x$id)
+    message("starting run: ", id)
+    ## find metedata for problem
+    x <- benchmark_results[benchmark_results$id == id, , drop = FALSE]
+    ## import data
+    curr_pu_data <- readRDS(pu_data_paths[x$pu_data])
+    curr_bd_data <- readRDS(bd_data_paths[x$pu_data])
     ## validate arguments
     assertthat::assert_that(nrow(x) == 1)
     ## otherwise, if run has not been completed then run analysis...
     ## create problem
     p <-
       prioritizr::problem(
-        pu_data[[x$pu_data]], spp_data$code, cost_column = "cost"
+        curr_pu_data, spp_data$code, cost_column = "cost"
       ) %>%
       prioritizr::add_relative_targets(x$relative_target) %>%
       prioritizr::add_binary_decisions()
@@ -173,19 +137,17 @@ bench_fun <- function(x) {
       )
     }
     ### prepare objective arguments
-    obj_args <- list(x = p, budget = total_cost[[x$pu_data]] * x$budget)
+    obj_args <- list(x = p, budget = pu_total_cost[[x$pu_data]] * x$budget)
     ### subset arguments to only include supported arguments
     obj_args <- obj_args[which(names(obj_args) %in% formalArgs(obj_fun))]
     ### add objective to problem
     p <- do.call(obj_fun, obj_args)
     ## add boundary penalties if needed
     if (x$boundary_penalty > 1e-15) {
-      p <-
-        prioritizr::add_boundary_penalties(
-          p,
-          x$boundary_penalty,
-          data = bd_data[[x$pu_data]]
-        )
+      p <- prioritizr::add_boundary_penalties(p,
+        x$boundary_penalty,
+        data = curr_bd_data
+      )
     }
     ## add solver
     ### find solver
@@ -229,14 +191,14 @@ bench_fun <- function(x) {
       s <- dplyr::select(s, "solution_1")
     }
     ## create raster with solution
-    r <- pu_raster_data[[x$pu_data]]
+    r <- terra::rast(pu_raster_data_paths[[x$pu_data]])
     if (inherits(s, "data.frame")) {
       ### create raster with solution values if feasible solution found
-      r[pu_data[[x$pu_data]]$pu] <- s$solution_1
+      r[curr_pu_data$pu] <- s$solution_1
     } else {
       ### create raster with -1 in all cells to indicate an error
       ### during solving
-      r[pu_data[[x$pu_data]]$pu] <- -1
+      r[curr_pu_data$pu] <- -1
     }
     ## save solution raster
     terra::writeRaster(r, x$raster_path, overwrite = TRUE, NAflag = -9999)
@@ -255,38 +217,44 @@ bench_fun <- function(x) {
     )
     ## save output
     saveRDS(out, x$run_path, compress = "xz")
+    ## increment progress bar
+    pb()
     ## return success
     TRUE
 }
 
-# perform benchmark analysis
 ## do runs without lpsymphony with optional parallel processing
 ## to avoid fork bombs
-results_part_1 <-
+benchmark_run_1 <-
   benchmark_results %>%
   dplyr::filter(!cache) %>%
-  dplyr::mutate(id2 = seq_len(nrow(.))) %>%
-  dplyr::filter(solver != "add_lpsymphony_solver") %>%
-  plyr::dlply(
-    "id2",
-    .parallel = exists("cl"),
-    .progress = ifelse(exists("cl"), "none", "text"),
-    bench_fun
+  dplyr::filter(solver != "add_lpsymphony_solver")
+results_part_1 <- progressr::with_progress({
+  pb <- progressr::progressor(nrow(benchmark_run_1))
+  results <- future.apply::future_lapply(
+    benchmark_run_1$id,
+    future.seed = NULL,
+    FUN = bench_fun
   )
+})
+
+## set single-threaded processing
+future::plan("sequential")
 
 ## do runs for lpsymphony separately
 if ("add_lpsymphony_solver" %in% benchmark_results$solver) {
-  results_part_2 <-
+  benchmark_run_2 <-
     benchmark_results %>%
     dplyr::filter(!cache) %>%
-    dplyr::mutate(id2 = seq_len(nrow(.))) %>%
-    dplyr::filter(solver == "add_lpsymphony_solver") %>%
-    plyr::dlply(
-      "id2",
-      .parallel = FALSE,
-      .progress = "text",
-      bench_fun
+    dplyr::filter(solver == "add_lpsymphony_solver")
+  results_part_2 <- progressr::with_progress({
+    pb <- progressr::progressor(nrow(benchmark_run_2))
+    results <- future.apply::future_lapply(
+      benchmark_run_2$id,
+      future.seed = NULL,
+      FUN = bench_fun
     )
+  })
 }
 
 ## merge runs together
@@ -302,13 +270,6 @@ assertthat::assert_that(
   msg = "some benchmark runs failed, try debugging this manually..."
 )
 
-## clean up parallel processing workers
-if (general_parameters$threads > 1) {
-  cl <- parallel::stopCluster(cl)
-  doParallel::stopImplicitCluster()
-  rm(cl)
-}
-
 # import results
 benchmark_results <-
   benchmark_results %>%
@@ -320,8 +281,9 @@ benchmark_results <-
 
 # clean up
 rm(
-  pu_data, pu_raster_data, bd_data,
-  results, results_part_1, results_part_2
+  pu_data, pu_raster_data, bd_data, results,
+  benchmark_run_1, benchmark_run_2,
+  results_part_1, results_part_2
 )
 
 # save session

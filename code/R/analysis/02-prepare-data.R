@@ -98,6 +98,9 @@ bd_data <-
     m[idx, idx]
   })
 
+# calculate total cost of different sized datasets
+pu_total_cost <- lapply(pu_data, function(x) sum(x$cost, na.rm = TRUE))
+
 # save results
 ## planning unit data
 ## note that we save these as separate files later to reduce memory
