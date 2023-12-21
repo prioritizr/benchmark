@@ -27,6 +27,7 @@ data/raw/planning-units/*zip
 # result files
 results/results.rda
 results/solutions.zip
+results/solver_versions.csv
 
 # renv library files
 renv/library

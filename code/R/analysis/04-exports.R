@@ -1,11 +1,17 @@
 # restore session
 restore_session("03")
 
+# load functions
+source("code/R/functions/get_solver_versions.R")
+
 # verify that no SpatRaster objects in session
 assertthat::assert_that(
   !any(sapply(ls(), function(x) inherits(get(x), "SpatRaster"))),
   msg = "SpatRaster objects still in session, these should be removed"
 )
+
+# save session
+save_session("final")
 
 # copy the results file to the results directory
 file.copy(
@@ -31,5 +37,13 @@ file.copy(
 )
 file.remove("data/intermediate/solutions.zip")
 
-# save session
-save_session("final")
+# create table with software versions
+solver_version_data <- get_solver_versions()
+
+# save solver versions
+write.table(
+  solver_version_data,
+  "results/solver_versions.csv",
+  row.names = FALSE,
+  sep = ","
+)

@@ -28,7 +28,7 @@ touch:
 # commands for running analysis
 analysis: data/final/results.rda
 
-data/final/results.rda: data/intermediate/03-*.rda code/R/analysis/04-*.R
+data/final/results.rda: data/intermediate/03-*.rda code/R/analysis/04-*.R code/R/functions/get_solver_versions.R
 	R CMD BATCH --no-restore --no-save code/R/analysis/04-*.R
 	mv -f *.Rout data/intermediate/
 
@@ -70,5 +70,6 @@ data/raw/planning-units/nplcc_cost_occupancy.zip:
 export: results/results.rda results/solutions.zip
 	R -e "piggyback::pb_upload('results/results.rda',repo='prioritizr/benchmark',tag='v0.0.6')"
 	R -e "piggyback::pb_upload('results/solutions.zip',repo='prioritizr/benchmark',tag='v0.0.6')"
+	R -e "piggyback::pb_upload('results/solver_versions.csv',repo='prioritizr/benchmark',tag='v0.0.6')"
 
 .PHONY: install raw_data analysis export
