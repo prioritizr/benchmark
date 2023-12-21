@@ -29,17 +29,53 @@ get_solver_versions <- function() {
 
 get_rsymphony_version <- function() {
   if (!requireNamespace("Rsymphony")) return(NA_character_)
-  return(NA_character_)
+  if (!identical(.Platform$OS.type, "unix")) return(NA_character_)
+  f <- system("locate SymConfig.h", intern = TRUE)
+  if (!nzchar(f) || !file.exists(f)) stop("Couldn't find SYMPHONY!")
+  v <- readLines(f)
+  v <- v[grepl(" SYMPHONY_VERSION ", v)]
+  v <- gsub("\"", "", v, fixed = TRUE)
+  v <- strsplit(v, " ", fixed = TRUE)[[1]][[3]]
+  v
 }
 
 get_lpsymphony_version <- function() {
   if (!requireNamespace("lpsymphony")) return(NA_character_)
-  return(NA_character_)
+  bc_version <- BiocManager::version()
+  bc_version <- gsub(".", "_", bc_version, fixed = TRUE)
+  url <- paste0(
+    "https://code.bioconductor.org/browse/lpsymphony/raw/RELEASE_",
+    bc_version, "/src/SYMPHONY/include/coin/SymConfig.h"
+  )
+  v <- readLines(url)
+  v <- v[grepl(" SYMPHONY_VERSION ", v)]
+  v <- gsub("\"", "", v, fixed = TRUE)
+  v <- strsplit(v, " ", fixed = TRUE)[[1]][[3]]
+  v
 }
 
 get_highs_version <- function() {
   if (!requireNamespace("highs")) return(NA_character_)
-  return(NA_character_)
+  if (!identical(.Platform$OS.type, "unix")) return(NA_character_)
+  pkg_version <- as.character(packageVersion("highs"))
+  pkg_version <- strsplit(pkg_version, ".", fixed = TRUE)
+  pkg_version <- paste0(
+    pkg_version[[1]][[1]], ".",
+    pkg_version[[1]][[2]], "-",
+    pkg_version[[1]][[3]]
+  )
+  url <- paste0(
+    "https://raw.githubusercontent.com/cran/highs/",
+    pkg_version, "/inst/HiGHS/HConfig.h.bazel"
+  )
+  v <- readLines(url)
+  v1 <- v[grepl("HIGHS_VERSION_MAJOR", v)]
+  v2 <- v[grepl("HIGHS_VERSION_MINOR", v)]
+  v3 <- v[grepl("HIGHS_VERSION_PATCH", v)]
+  v1 <- strsplit(v1, " ", fixed = TRUE)[[1]][[3]]
+  v2 <- strsplit(v2, " ", fixed = TRUE)[[1]][[3]]
+  v3 <- strsplit(v3, " ", fixed = TRUE)[[1]][[3]]
+  paste0(v1, ".", v2, ".", v3)
 }
 
 get_cplex_version <- function() {
