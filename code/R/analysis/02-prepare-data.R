@@ -51,12 +51,12 @@ pu_output <-
     ## create planning unit data for given resolution, including spp data
     d <-
       full_pu_data %>%
-      dplyr::mutate(pu = r[idx][[1]]) %>%
+      dplyr::mutate(pu = idx) %>%
       dplyr::group_by(pu) %>%
       dplyr::summarize_all(sum) %>%
       dplyr::ungroup()
-    ## rescale cost values in raster so that maximum value is 10000
-    d$cost <- (d$cost / max(d$cost)) * 1e4
+    ## rescale cost values in raster so that maximum value is 1000
+    d$cost <- (d$cost / max(d$cost)) * 1e3
     ## validate result
     assertthat::assert_that(
       nrow(d) == length(r_ids),
@@ -82,14 +82,14 @@ pu_data_n <- vapply(pu_data, nrow, integer(1))
 
 # prepare boundary length matrix data for benchmark analysis
 bd_data <-
-  pu_raster_data %>%
-  lapply(function(x) {
+  seq_along(pu_raster_data) %>%
+  lapply(function(i) {
     ## create boundary matrix
-    m <- prioritizr::boundary_matrix(x)
+    m <- prioritizr::boundary_matrix(pu_raster_data[[i]])
     ## rescale boundary data
     m <- prioritizr::rescale_matrix(m)
     ## find indices of planning units
-    idx <- terra::cells(is.na(x), 0)[[1]]
+    idx <- pu_data[[i]]$pu
     ## subset matrix to only include planning units
     m[idx, idx]
   })

@@ -1,7 +1,8 @@
 title = "data parameters"
 
 [debug]
-planning_unit_size = [5000, 1000, 500] # units are meters x meters
+planning_unit_size = [200] # units are meters x meters
+# planning_unit_size = [5000, 1000, 500] # units are meters x meters
 
 [release]
 planning_unit_size = [5000, 1500, 500, 200] # units are meters x meters

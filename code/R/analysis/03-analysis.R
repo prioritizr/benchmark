@@ -160,7 +160,7 @@ bench_fun <- function(id) {
     ### prepare solver arguments
     solver_args <- list(
       x = p, threads = x$threads, time_limit = x$time_limit, gap = x$gap,
-      verbose = FALSE
+      verbose = TRUE
     )
     ### subset arguments to only include supported arguments
     solver_args <-

@@ -2,21 +2,50 @@ title = "benchmarking parameters"
 
 [debug]
 ## parameters
-solver = ["add_gurobi_solver", "add_cbc_solver", "add_highs_solver"]
-relative_target = [0.1, 0.15, 0.2]
+solver = ["add_gurobi_solver"]
+# solver = ["add_cbc_solver"]
+relative_target = [0.1]
 number_replicates = 1
 budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
 ## solver arguments
-time_limit = 5 # seconds
+time_limit = 1e+8 # seconds
 threads = 1
 gap = [0.1]
 ## objective parameters
 [[debug.objective]]
 name = "add_min_set_objective"
-boundary_penalty_value = [0.0, 0.001, 0.1]
+boundary_penalty_value = [0.0]
 [[debug.objective]]
 name = "add_min_shortfall_objective"
-boundary_penalty_value = [0.0, 0.0000000001, 0.000000001]
+## CBC
+# 0.00001 crash
+# 0.0000000005 takes >= several days
+# 0.0000000002 takes >= couple of days
+# 0.00000000015 takes >= couple of days
+# 0.00000000013 takes >= couple of days
+# 0.000000000127 takes >= couple of days
+# 0.000000000126 takes a few hours
+# 0.000000000125 takes a few hours
+# 0.00000000012 takes a few hours
+# 0.0000000001 takes a few hours
+## GUROBI
+boundary_penalty_value = [0.0, 0.000000000001, 0.0000001]
+# ## parameters
+# solver = ["add_gurobi_solver", "add_cbc_solver", "add_highs_solver"]
+# relative_target = [0.1, 0.15, 0.2]
+# number_replicates = 1
+# budget = [0.1] # budget for budget-limited objectives (0.1 = 10% of total cost)
+# ## solver arguments
+# time_limit = 5 # seconds
+# threads = 1
+# gap = [0.1]
+# ## objective parameters
+# [[debug.objective]]
+# name = "add_min_set_objective"
+# boundary_penalty_value = [0.0, 0.001, 0.1]
+# [[debug.objective]]
+# name = "add_min_shortfall_objective"
+# boundary_penalty_value = [0.0, 0.0000000001, 0.000000001]
 
 [release]
 ## parameters
