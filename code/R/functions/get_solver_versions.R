@@ -31,7 +31,10 @@ get_rsymphony_version <- function() {
   if (!requireNamespace("Rsymphony")) return(NA_character_)
   if (!identical(.Platform$OS.type, "unix")) return(NA_character_)
   f <- system("locate SymConfig.h", intern = TRUE)
-  if (!nzchar(f) || !file.exists(f)) stop("Couldn't find SYMPHONY!")
+  if (!nzchar(f) || !file.exists(f)) {
+    warning("Couldn't find SYMPHONY!")
+    return(NA_character_)
+  }
   v <- readLines(f)
   v <- v[grepl(" SYMPHONY_VERSION ", v)]
   v <- gsub("\"", "", v, fixed = TRUE)
